@@ -1,6 +1,6 @@
 // Luồng lõi: chọn ảnh → gửi proxy → thẻ màu theo mức nguy hiểm → Mark & Bit đọc to → Hỏi con cháu.
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, Share, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, ScrollView, Share, Text, View } from 'react-native';
 import { checkImage, type CheckResult } from './api';
 import { pickImage, type PickedImage } from './image';
 import { BigButton, Card, COLORS, DialogueLine, RISK_STYLE, styles } from './ui';
@@ -43,8 +43,12 @@ export function CheckScreen({ onBack }: { onBack: () => void }) {
       result.title,
       ...result.reasons.map((r) => `- ${r}`),
     ].join('\n');
-    // iOS gửi được cả ảnh lẫn chữ; Android chỉ gửi chữ (giới hạn của Share API).
-    await Share.share({ message, url: image.uri });
+    // Chỉ iOS gửi kèm ảnh được; Android và web chỉ gửi chữ (web còn báo lỗi nếu url là ảnh trong máy).
+    try {
+      await Share.share(Platform.OS === 'ios' ? { message, url: image.uri } : { message });
+    } catch (err) {
+      console.warn(err);
+    }
   }
 
   function reset() {
