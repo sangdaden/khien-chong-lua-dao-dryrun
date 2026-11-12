@@ -17,7 +17,7 @@ samples/  Tin nhắn lừa đảo mẫu tự viết để demo
 ### Bước 1. Khung app (Expo SDK 58)
 
 - Tạo bằng `create-expo-app` mẫu `blank-typescript`. Không dùng Expo Router để giữ đơn giản: `App.tsx` chỉ đổi giữa 3 màn hình (trang đầu, Kiểm tra, Luyện tập) bằng một biến `screen`.
-- `src/ui.tsx`: chữ tối thiểu 20-32px, nút cao 72px, màu tương phản cao. Thẻ kết quả có 3 màu: đỏ (nguy hiểm cao), cam (cần cẩn thận), xanh (có vẻ an toàn).
+- `src/ui.tsx`: chữ tối thiểu 20-32px, nút cao 72px, màu tương phản cao. Thẻ kết quả có 3 mức, mỗi mức có màu + hình + chữ: đỏ bát giác (NGUY HIỂM), vàng tam giác chữ đen (CẦN CẨN THẬN), xanh tròn (CHƯA THẤY DẤU HIỆU LỪA, không bao giờ ghi "an toàn").
 - Chỉ dùng các thư viện có sẵn trong Expo Go (image-picker, image-manipulator, speech, safe-area-context), nên **không cần build app riêng**, quét QR là chạy.
 
 ### Bước 2. Proxy giữ API key (`proxy/`)
@@ -49,6 +49,22 @@ Nút xanh "Hỏi con cháu" mở bảng chia sẻ của điện thoại (chọn 
 ### Bước 5. Luyện tập (`src/PracticeScreen.tsx`)
 
 AI tạo một tin nhắn (khoảng một nửa là tin thật để không đoán bừa), ông bà chọn "Lừa đảo" hoặc "Tin thật", Mark & Bit giải thích. Kiểu nào ông bà đoán sai được gửi lại cho AI (`weakSpots`) để ra thêm bài kiểu đó: đây là phần "cá nhân hoá" khi pitch.
+
+### Bước 6. Làm mượt giao diện (bản 2, 12/11)
+
+Học từ các app đang có trên thị trường (Norton Genie, Bitdefender Scamio, McAfee Scam Detector, nTrust của NCA, cảnh báo lừa đảo của WhatsApp/Messenger) và hướng dẫn UX cho người lớn tuổi:
+
+- **Trang đầu:** một nút tròn to "Kiểm tra tin nhắn"; ô nhỏ Dán chữ, Luyện tập; nút Gọi người thân; mẹo hôm nay; 3 tin đã kiểm tra gần nhất.
+- **Ba cách đưa tin:** chọn ảnh chụp màn hình, **dán chữ** (proxy `/check` nhận thêm `{ text }`), chụp bằng camera.
+- **Màn Đang đọc:** 3 bước có chữ + chấm tiến độ, nút Huỷ.
+- **Màn DỪNG LẠI** (chỉ mức đỏ): đỏ cả màn hình, rung, chạm để xem vì sao.
+- **Màn Kết quả** theo thứ tự câu hỏi của ông bà: Có nguy hiểm không? → Làm gì ngay (đánh số) → Dấu hiệu (câu trích nguyên văn tô đỏ) → tin gốc (tô đỏ chỗ đáng ngờ) → Mark & Bit. Thanh nút cố định ở đáy: Nghe lại + Gọi người thân / Hỏi con cháu.
+- **JSON mới:** thêm `headline`, `evidence[{quote, why}]`, `actions[]` (app vẫn chạy nếu proxy cũ chưa gửi).
+- **Người thân:** lưu tên + số trong máy, kết quả có nút "Gọi con Lan" một chạm.
+- **Lịch sử** 20 lần kiểm tra gần nhất (chỉ lưu trong máy).
+- **Luyện tập:** tin dạng bong bóng, lượt 5 câu có thanh tiến độ, màn tổng kết "kiểu hay nhầm".
+- **Khay tin mẫu ẩn:** nhấn giữ logo 2 giây, gửi chữ tin mẫu thẳng tới AI khi demo.
+- Thư viện mới (cần build lại bằng Xcode, không chạy trên Expo Go cũ): `@react-native-async-storage/async-storage`, `expo-haptics`.
 
 ### Chế độ DEMO
 

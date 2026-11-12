@@ -2,7 +2,8 @@
 // sửa ở đây là đổi cách AI đánh giá, không cần sửa app.
 
 export const CHECK_SYSTEM = `Bạn là trợ lý chống lừa đảo cho người lớn tuổi ở Việt Nam.
-Người dùng gửi ảnh chụp màn hình một tin nhắn, cuộc trò chuyện, email hoặc màn hình chuyển khoản.
+Người dùng gửi ảnh chụp màn hình một tin nhắn, cuộc trò chuyện, email hoặc màn hình chuyển khoản,
+hoặc dán thẳng chữ của tin nhắn.
 
 Việc của bạn:
 1. Đọc kỹ chữ trong ảnh (tiếng Việt), người gửi, số tài khoản, đường link, số tiền.
@@ -18,6 +19,12 @@ Việc của bạn:
    Không chắc thì chọn mức cao hơn: bỏ sót lừa đảo nguy hiểm hơn cảnh báo nhầm.
 4. Viết cho người 60-80 tuổi: câu ngắn, từ đơn giản, không dùng tiếng Anh hay thuật ngữ.
 
+Trường "headline" là câu hành động ngắn (dưới 8 từ) đặt to trên thẻ màu, ví dụ "Đừng chuyển tiền!", "Khoan, hỏi lại cho chắc", "Tin trông bình thường".
+Trường "evidence" là 1-4 dấu hiệu: "quote" phải chép NGUYÊN VĂN một cụm ngắn (dưới 15 từ) có thật trong tin, đúng chính tả như trong tin,
+để app tô đỏ; "why" giải thích một câu ngắn. Mức "thấp" có thể để evidence rỗng.
+Trường "actions" là 1-3 việc nên làm ngay, theo thứ tự, mỗi việc một câu ngắn bắt đầu bằng động từ (Không chuyển tiền..., Gọi cho con cháu...).
+Không bao giờ nói tin là "an toàn" hay "chắc chắn thật": AI có thể sót, chỉ nói "chưa thấy dấu hiệu lừa".
+
 Trường "dialogue" là lời thoại để đọc to: Mark (anh chàng điềm tĩnh) và Bit (chú robot nhỏ nhanh nhảu)
 cùng giải thích cho ông bà, 2 đến 4 câu, mỗi câu dưới 25 từ, xưng "ông bà".
 Nếu ảnh không phải tin nhắn hay màn hình giao dịch, đặt risk "thấp" và nói rõ trong title là không đọc được tin nhắn.`;
@@ -27,8 +34,20 @@ export const CHECK_SCHEMA = {
   properties: {
     risk: { type: "string", enum: ["thấp", "trung bình", "cao"] },
     title: { type: "string", description: "Một câu kết luận ngắn, ví dụ: Đây gần như chắc chắn là lừa đảo." },
+    headline: { type: "string", description: "Câu hành động dưới 8 từ, ví dụ: Đừng chuyển tiền!" },
+    evidence: {
+      type: "array",
+      description: "0-4 dấu hiệu, quote chép nguyên văn từ tin nhắn.",
+      items: {
+        type: "object",
+        properties: { quote: { type: "string" }, why: { type: "string" } },
+        required: ["quote", "why"],
+        additionalProperties: false,
+      },
+    },
     reasons: { type: "array", items: { type: "string" }, description: "2-4 lý do, mỗi lý do một câu ngắn." },
     advice: { type: "string", description: "Một lời khuyên cụ thể nên làm ngay." },
+    actions: { type: "array", items: { type: "string" }, description: "1-3 việc nên làm ngay, theo thứ tự." },
     dialogue: {
       type: "array",
       items: {
@@ -42,7 +61,7 @@ export const CHECK_SCHEMA = {
       },
     },
   },
-  required: ["risk", "title", "reasons", "advice", "dialogue"],
+  required: ["risk", "title", "headline", "evidence", "reasons", "advice", "actions", "dialogue"],
   additionalProperties: false,
 } as const;
 
