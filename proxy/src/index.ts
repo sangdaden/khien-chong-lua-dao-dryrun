@@ -46,8 +46,21 @@ async function askClaude(
   return JSON.parse(text.text);
 }
 
+const MAX_TEXT = 4_000;
+
 async function handleCheck(req: Request, env: Env): Promise<Response> {
-  const body = (await req.json()) as { imageBase64?: string; mediaType?: string };
+  const body = (await req.json()) as { imageBase64?: string; mediaType?: string; text?: string };
+  const question = "Ông bà vừa nhận được tin này. Đây có phải lừa đảo không?";
+
+  // Ông bà có thể dán thẳng chữ của tin nhắn thay vì gửi ảnh.
+  if (typeof body.text === "string" && body.text.trim()) {
+    const text = body.text.trim().slice(0, MAX_TEXT);
+    const result = await askClaude(env, CHECK_SYSTEM, CHECK_SCHEMA, [
+      { type: "text", text: `${question}\n\nNội dung tin nhắn (ông bà dán vào):\n"""\n${text}\n"""` },
+    ]);
+    return json(result);
+  }
+
   const data = body.imageBase64;
   if (!data || typeof data !== "string") return json({ error: "missing_image" }, 400);
   if (data.length > MAX_IMAGE_BASE64) return json({ error: "image_too_large" }, 413);
@@ -55,7 +68,7 @@ async function handleCheck(req: Request, env: Env): Promise<Response> {
 
   const result = await askClaude(env, CHECK_SYSTEM, CHECK_SCHEMA, [
     { type: "image", source: { type: "base64", media_type: mediaType, data } },
-    { type: "text", text: "Ông bà vừa nhận được tin này. Đây có phải lừa đảo không?" },
+    { type: "text", text: question },
   ]);
   return json(result);
 }
